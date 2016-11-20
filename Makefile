@@ -65,12 +65,13 @@ $(OBJDIR) $(BINDIR) $(SRCDIR) $(INCDIR) $(LTXDIR) $(TXTDIR):
 .PHONY: init
 init: | $(SRCDIR) $(INCDIR) $(LTXDIR) $(TXTDIR)
 	git init
+	echo $(OBJDIR)/* $(TXTDIR)/* > .gitignore
 	git add $(SCRDIR)
 	git add $(INCDIR)
 	git add $(LTXDIR)
+	git add .gitignore
 	git add Makefile
 	git commit -m "Initial commit"
-	echo $(OBJDIR)/* $(TXTDIR)/* > .gitignore
 
 .PHONY: clean
 clean:
