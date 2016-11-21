@@ -64,13 +64,34 @@ $(OBJDIR) $(BINDIR) $(SRCDIR) $(INCDIR) $(LTXDIR) $(TXTDIR) $(FINALDIR):
 .PHONY: init
 init: | $(SRCDIR) $(INCDIR) $(LTXDIR) $(TXTDIR)
 	git init
-	echo $(OBJDIR)/* $(TXTDIR)/* $(FINALDIR) > .gitignore
+	echo $(OBJDIR)/* $(TXTDIR)/* $(FINALDIR)/* > .gitignore
 	git add $(SRCDIR)
 	git add $(INCDIR)
 	git add $(LTXDIR)
 	git add .gitignore
 	git add Makefile
 	git commit -m "Initial commit"
+
+.PHONY: template
+template:
+	touch $(LTXDIR)/$(TEX)
+	echo '\\documentclass[a4paper, 12pt]{article}' > $(LTXDIR)/$(TEX)
+	echo '\\usepackage[brazilian]{babel}' >> $(LTXDIR)/$(TEX)
+	echo '\\usepackage[utf8]{inputenc}' >> $(LTXDIR)/$(TEX)
+	echo '\\usepackage[T1]{fontenc}' >> $(LTXDIR)/$(TEX)
+	echo '\\usepackage[a4paper]{geometry}' >> $(LTXDIR)/$(TEX)
+	echo '\\usepackage{amsmath}' >> $(LTXDIR)/$(TEX)
+	echo '\\usepackage{amssymb}' >> $(LTXDIR)/$(TEX)
+	echo '\\usepackage{indentfirst}' >> $(LTXDIR)/$(TEX)
+	echo '' >> $(LTXDIR)/$(TEX)
+	echo '\\title{}' >> $(LTXDIR)/$(TEX)
+	echo '\\author{}' >> $(LTXDIR)/$(TEX)
+	echo '\\date{}' >> $(LTXDIR)/$(TEX)
+	echo '' >> $(LTXDIR)/$(TEX)
+	echo '\\begin{document}' >> $(LTXDIR)/$(TEX)
+	echo '\\maketitle' >> $(LTXDIR)/$(TEX)
+	echo '' >> $(LTXDIR)/$(TEX)
+	echo '\\end{document}' >> $(LTXDIR)/$(TEX)
 
 .PHONY: clean
 clean:
@@ -99,6 +120,10 @@ organize:
 tar: | $(FINALDIR)
 	$(CP) $(SRCDIR) $(FINALDIR)
 	$(CP) $(LTXDIR) $(FINALDIR)
+	$(RM) $(FINALDIR)/$(LTXDIR)/*.dvi
+	$(RM) $(FINALDIR)/$(LTXDIR)/*.aux
+	$(RM) $(FINALDIR)/$(LTXDIR)/*.log
+	$(RM) $(FINALDIR)/$(LTXDIR)/*.tex
 	$(CP) $(INCDIR) $(FINALDIR)
 	$(CP) Makefile $(FINALDIR)
 	$(TAR) $(TARF).tar $(FINALDIR)
