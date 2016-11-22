@@ -1,1 +1,7 @@
-obj/* txt/* EP5
+obj
+txt
+EP5
+ep5
+report/*.log
+report/*.dvi
+report/*.aux
