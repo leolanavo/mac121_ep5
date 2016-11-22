@@ -29,16 +29,14 @@ char** create_board () {
 
 void priority(int** board, piece pos, piece *plays, int limit) {
     int i;
-    piece diff;
+    piece optimal;
     for (i = 0; i < limit; i++)
         if (board[plays[i].line][plays[i].col] == pos.value)
             break;
 
     if ((i < limit) || 
         (i == limit && board[plays[i].line][plays[i].col] == pos.value)) {
-            diff.line = pos.line - plays[i].line;
-            diff.col = pos.col - plays[i].col;
-
+            
     }
 
 }
@@ -56,36 +54,42 @@ piece* bridge_strat_vector (int** board, piece pos) {
     if (pos.line > 0 && pos.col > 0) {
         plays[count].lin = pos.lin - 1;
         plays[count].col = pos.col - 1;
+        plays[count].value = 0;
         count++;
     } 
     
     if (pos.line < size && pos.col < size) {
         plays[count].lin = pos.lin + 1;
         plays[count].col = pos.col + 1;
+        plays[count].value = 3;
         count++;
     }
     
     if (pos.line > 1 && pos.col < size) {
         plays[count].lin = pos.lin - 2;
         plays[count].col = pos.col + 1;
+        plays[count].value = 1;
         count++;
     }
 
     if (pos.line > 0 && pos.col < size - 1) {
         plays[count].lin = pos.lin - 1;
         plays[count].col = pos.col + 2;
+        plays[count].value = 2;
         count++;
     }
 
     if (pos.line < size - 1) {
         plays[count].lin = pos.lin + 2;
         plays[count].col = pos.col;
+        plays[count].value = 4;
         count++;
     }
 
     if (pos.line > 1 && pos.col > 1) {
         plays[count].lin = pos.lin - 2;
         plays[count].col = pos.col + 2;
+        plays[count].value = 5;
         count++;
     }
 
