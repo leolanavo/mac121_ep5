@@ -17,27 +17,50 @@ typedef struct {
 /* Returns a char pointer pointer which will be
  * the 14x14 board for the hex game. */
 char** create_board () {
-    int **board, lin, col;
-    board = malloc(size * sizeof(int*));
+    char** board;
+    int lin, col;
+    
+    board = malloc(size * sizeof(char*));
     for (lin = 0; lin < size; lin++) {
-        board[lin] = malloc(size * sizeof(int));
+        board[lin] = malloc(size * sizeof(char));
         for (col = 0; col < size; col++)
             board[lin][col] = '-';
     }
+    
     return board;
 }
 
-void priority(int** board, piece pos, piece *plays, int limit) {
-    int i;
-    piece optimal;
-    for (i = 0; i < limit; i++)
-        if (board[plays[i].line][plays[i].col] == pos.value)
-            break;
-
-    if ((i < limit) || 
-        (i == limit && board[plays[i].line][plays[i].col] == pos.value)) {
-            
+void check_path(int** matrix, char** board, int line, int col, char color, int x) {
+    if (board[i][j] == color) {
+        if ()
     }
+    else return;
+}
+
+int decision_value (char** board, char color) {
+    int i, j, **aux;
+    
+    aux = malloc(size * sizeof(int*));
+    for (i = 0; i < size; i++) {
+        aux[i] = malloc(size * sizeof(int));
+        for (j = 0; j < size; j++)
+            aux[i][j] = -1;
+    }
+
+    for (i = 0; i < size; i++) {
+        for (j = 0; j < size; j++) {
+            if (board[i][j] == '-' && aux[i][j] == -1) 
+                aux[i][j] = i;
+            else if (board[i][j] == color) {
+                aux[i][j] = i;
+                check_path (aux, board, i, j, color, i);
+            }
+        }
+    }
+
+}
+
+void priority(char** board, piece pos, piece *plays, int limit) {
 
 }
 
