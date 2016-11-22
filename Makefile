@@ -63,14 +63,20 @@ $(OBJDIR) $(BINDIR) $(SRCDIR) $(INCDIR) $(LTXDIR) $(TXTDIR) $(FINALDIR):
 # phony targets for automation
 .PHONY: init
 init: | $(SRCDIR) $(INCDIR) $(LTXDIR) $(TXTDIR)
-	git init
-	echo $(OBJDIR)/* $(TXTDIR)/* $(FINALDIR)/* > .gitignore
-	git add $(SRCDIR)
-	git add $(INCDIR)
-	git add $(LTXDIR)
-	git add .gitignore
-	git add Makefile
-	git commit -m "Initial commit"
+	#git init
+	echo $(OBJDIR) > .gitignore
+	echo $(TXTDIR) >> .gitignore
+	echo $(FINALDIR) >> .gitignore
+	echo $(BIN) >> .gitignore
+	echo $(LTXDIR)/*.log >> .gitignore
+	echo $(LTXDIR)/*.dvi >> .gitignore
+	echo $(LTXDIR)/*.aux >> .gitignore
+	#git add $(SRCDIR)
+	#git add $(INCDIR)
+	#git add $(LTXDIR)
+	#git add .gitignore
+	#git add Makefile
+	#git commit -m "Initial commit"
 
 .PHONY: template
 template:
