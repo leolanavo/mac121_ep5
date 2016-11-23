@@ -9,8 +9,9 @@ define size 14;
  * The value field is either its color or its
  * priority. */
 typedef struct {
-    int line;
+    int lin;
     int col;
+    char color;
     int value;
 } piece;
 
@@ -30,86 +31,76 @@ char** create_board () {
     return board;
 }
 
-void check_path(int** matrix, char** board, int line, int col, char color, int x) {
-    if (board[i][j] == color) {
-        if ()
-    }
-    else return;
-}
-
-int decision_value (char** board, char color) {
-    int i, j, **aux;
-    
-    aux = malloc(size * sizeof(int*));
-    for (i = 0; i < size; i++) {
-        aux[i] = malloc(size * sizeof(int));
-        for (j = 0; j < size; j++)
-            aux[i][j] = -1;
-    }
-
-    for (i = 0; i < size; i++) {
-        for (j = 0; j < size; j++) {
-            if (board[i][j] == '-' && aux[i][j] == -1) 
-                aux[i][j] = i;
-            else if (board[i][j] == color) {
-                aux[i][j] = i;
-                check_path (aux, board, i, j, color, i);
-            }
-        }
-    }
-
-}
-
 void priority(char** board, piece pos, piece *plays, int limit) {
+    int i, j, k, opposite;
 
+    for (k = 0; k < limit; k++) {
+        i = plays[k].line;
+        j = plays[k].col;
+        if (matrix[i][j] == pos.color) 
+            opposite = (pos.value + 3)%6;
+    }
+
+    for (k = 0; k < limit; k++) {
+        if (board[plays[k].lin][plays[k].col] == '-') { 
+            if (plays[k].value == opposite) plays[k].value = 3;
+            else if (plays[k].value == (opposite + 1)%6 ) plays[k].value = 2;
+            else if (plays[k].value == (opposite + 2)%6 ) plays[k].value = 1;
+            else if (plays[k].value == (opposite - 1)%6 ) plays[k].value = 2;
+            else if (plays[k].value == (opposite - 2)%6 ) plays[k].value = 1;
+            else if (opposite - 2 < 0 && plays[k].value == 4) plays[k].value = 2;
+            else if (opposite - 1 < 0 && plays[k].value == 5) plays[k].value = 1;
+        }
+        else plays[k].value = -1;
+    }
 }
 
 /* Receives the game's board and a piece which will be
  * used to make a play according to the bridge 
  * strategy. */
 piece* bridge_strat_vector (int** board, piece pos) {
-    int count, index;
+    int count;
     piece *plays;
     
     count = 0;
     plays = malloc(6 * sizeof(piece));
     
-    if (pos.line > 0 && pos.col > 0) {
+    if (pos.lin > 0 && pos.col > 0) {
         plays[count].lin = pos.lin - 1;
         plays[count].col = pos.col - 1;
         plays[count].value = 0;
         count++;
     } 
     
-    if (pos.line < size && pos.col < size) {
+    if (pos.lin < size && pos.col < size) {
         plays[count].lin = pos.lin + 1;
         plays[count].col = pos.col + 1;
         plays[count].value = 3;
         count++;
     }
     
-    if (pos.line > 1 && pos.col < size) {
+    if (pos.lin > 1 && pos.col < size) {
         plays[count].lin = pos.lin - 2;
         plays[count].col = pos.col + 1;
         plays[count].value = 1;
         count++;
     }
 
-    if (pos.line > 0 && pos.col < size - 1) {
+    if (pos.lin > 0 && pos.col < size - 1) {
         plays[count].lin = pos.lin - 1;
         plays[count].col = pos.col + 2;
         plays[count].value = 2;
         count++;
     }
 
-    if (pos.line < size - 1) {
+    if (pos.lin < size - 1) {
         plays[count].lin = pos.lin + 2;
         plays[count].col = pos.col;
         plays[count].value = 4;
         count++;
     }
 
-    if (pos.line > 1 && pos.col > 1) {
+    if (pos.lin > 1 && pos.col > 1) {
         plays[count].lin = pos.lin - 2;
         plays[count].col = pos.col + 2;
         plays[count].value = 5;
@@ -117,9 +108,8 @@ piece* bridge_strat_vector (int** board, piece pos) {
     }
 
     priority(board, pos, plays, count);
-
+    return (plays);
 }
-
 
 int main (int argc, char** argv) {
     int **board;
