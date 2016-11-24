@@ -4,13 +4,17 @@
 
 define SIZE 14
 
+typedef struct {
+    int lin;
+    int col;
+} coord;
+
 /* A struct which will save the position
  * of a piece in the board, and its value. 
  * The value field is either its color or its
  * priority. */
 typedef struct {
-    int lin;
-    int col;
+    coord pos;
     char color;
     int value;
 } piece;
@@ -20,6 +24,70 @@ typedef struct {
     piece left;
 } bridge;
 
+const coord_neigh[] = {
+    { -2,  1 }, 
+    { -1, -1 },
+    { -1,  0 },
+    { -1,  1 },
+    { -1,  2 },
+    {  0, -1 },
+    {  0,  1 },
+    {  1, -2 },
+    {  1, -1 },
+    {  1,  0 },
+    {  1,  1 },
+    {  2, -1 }
+};
+
+const coord_tower_down[] = {
+    {   2, -3  },
+    {   2, -2  },
+    {   2,  0  },
+    {   2,  1  },
+    {   1, -2  },
+    {   1, -1  },
+    {   1,  0  },
+    {   1,  1  },
+    {   0, -2  },
+    {   0, -1  }
+}
+
+const coord_tower_left[] = {
+    {  -1, -2  },
+    {   0, -2  },
+    {   2, -2  },
+    {   3, -2  },
+    {  -1, -1  },
+    {   0, -1  },
+    {   1, -1  },
+    {   2, -1  },
+    {  -1,  0  },
+    {   1,  0  }
+}
+const coord_tower_up[] = {
+    {  -2, -1  },
+    {  -2,  0  },
+    {  -2,  2  },
+    {  -2,  3  },
+    {  -1, -1  },
+    {  -1,  0  },
+    {  -1,  1  },
+    {  -1,  2  },
+    {   0, -1  },
+    {   0,  1  },
+}
+const coord_tower_right[] = {
+    {  -3, 2  },
+    {  -2, 2  },
+    {   0, 2  },
+    {   1, 2  },
+    {  -2, 1  },
+    {  -1, 1  },
+    {   0, 1  },
+    {   1, 1  },
+    {  -1, 0  },
+    {   1, 0  },
+}
 /* Returns a char pointer pointer which will be
  * the 14x14 board for the hex game. */
 char** create_board () {
@@ -36,37 +104,44 @@ char** create_board () {
     return board;
 }
 
-piece check_brigdes (char** board, bridge* bridges, int limit) {
-    int i, failed;
-    failed.lin = failed.col = -1;
-    
-    for (i = 0; i < limit; i++) {
-        if (board[bridges[i].right.lin][bridges[i].right.col] == p) {
-            board[bridges[i].left.lin][bridges[i].left.col] =  b;
-            return (bridges[i].left);
-        }
-        
-        if (board[bridges[i].left.lin][bridges[i].left.col] ==  p) {
-            board[bridges[i].right.lin][bridges[i].right.col] = b;
-            return (bridges[i].right);
-        }
-    }
-    
-    return failed;
-}
-
 int** flood (char** board) {
     int **aux, i;
     aux = malloc(SIZE * sizeof(int*));
     for (i = 0; i < SIZE; i++)
         aux[i] = calloc(SIZE, sizeof(int));
-
-
     
+    for (i = 0; i < SIZE; i++) {
+        if (board[0][i] != 'b') aux[0][i] = 1;
+        if (board[13][i] != 'b') aux[13][i] = 1;
+    }
+
+    for (i = 0; i < SIZE - 1; i++) {
+        if (aux[0][i] == 1 && aux[0][i + 1] == 1)
+            aux[1][i] = 1;
+        if (aux[13][i] == 1 && aux[13][i + 1] == 1)
+            aux[12][i] = 1;
+    }
 }
 
-void priority(char** board, piece pos, piece *plays, int limit) {
-    int i, j, k, opposite;
+int in_board (coord pos) {
+    if (pos.lin < 0 || pos.lin >= SIZE) return 0;
+    if (pos.col < 0 || pos.col >= SIZE) return 0;
+    return 1;
+}
+
+void markdown (char** board, coord pos, int** plays, char color) {
+    int i;
+    coord aux;
+    for (i = 0; i < 10; i++) {
+        aux.lin = pos.lin + coord_neigh[i].lin;
+        aux.col = pos.col + coord_neigh[i].col;
+        if (in_board(aux)) {
+            if (board[aux.lin][aux.col] == color)
+                markdown(board, pos, plays, color);
+            if (board[aux.lin][aux.col] == '-')
+                plays[aux.lin][aux.col] = 1;
+        }
+    }
 }
 
 /* Receives the game's board and a piece which will be
