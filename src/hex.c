@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-define size 14;
+define SIZE 14
 
 /* A struct which will save the position
  * of a piece in the board, and its value. 
@@ -15,44 +15,58 @@ typedef struct {
     int value;
 } piece;
 
+typedef struct {
+    piece right;
+    piece left;
+} bridge;
+
 /* Returns a char pointer pointer which will be
  * the 14x14 board for the hex game. */
 char** create_board () {
     char** board;
     int lin, col;
     
-    board = malloc(size * sizeof(char*));
-    for (lin = 0; lin < size; lin++) {
-        board[lin] = malloc(size * sizeof(char));
-        for (col = 0; col < size; col++)
+    board = malloc(SIZE * sizeof(char*));
+    for (lin = 0; lin < SIZE; lin++) {
+        board[lin] = malloc(SIZE * sizeof(char));
+        for (col = 0; col < SIZE; col++)
             board[lin][col] = '-';
     }
     
     return board;
 }
 
+piece check_brigdes (char** board, bridge* bridges, int limit) {
+    int i, failed;
+    failed.lin = failed.col = -1;
+    
+    for (i = 0; i < limit; i++) {
+        if (board[bridges[i].right.lin][bridges[i].right.col] == p) {
+            board[bridges[i].left.lin][bridges[i].left.col] =  b;
+            return (bridges[i].left);
+        }
+        
+        if (board[bridges[i].left.lin][bridges[i].left.col] ==  p) {
+            board[bridges[i].right.lin][bridges[i].right.col] = b;
+            return (bridges[i].right);
+        }
+    }
+    
+    return failed;
+}
+
+int** flood (char** board) {
+    int **aux, i;
+    aux = malloc(SIZE * sizeof(int*));
+    for (i = 0; i < SIZE; i++)
+        aux[i] = calloc(SIZE, sizeof(int));
+
+
+    
+}
+
 void priority(char** board, piece pos, piece *plays, int limit) {
     int i, j, k, opposite;
-
-    for (k = 0; k < limit; k++) {
-        i = plays[k].line;
-        j = plays[k].col;
-        if (matrix[i][j] == pos.color) 
-            opposite = (pos.value + 3)%6;
-    }
-
-    for (k = 0; k < limit; k++) {
-        if (board[plays[k].lin][plays[k].col] == '-') { 
-            if (plays[k].value == opposite) plays[k].value = 3;
-            else if (plays[k].value == (opposite + 1)%6 ) plays[k].value = 2;
-            else if (plays[k].value == (opposite + 2)%6 ) plays[k].value = 1;
-            else if (plays[k].value == (opposite - 1)%6 ) plays[k].value = 2;
-            else if (plays[k].value == (opposite - 2)%6 ) plays[k].value = 1;
-            else if (opposite - 2 < 0 && plays[k].value == 4) plays[k].value = 2;
-            else if (opposite - 1 < 0 && plays[k].value == 5) plays[k].value = 1;
-        }
-        else plays[k].value = -1;
-    }
 }
 
 /* Receives the game's board and a piece which will be
