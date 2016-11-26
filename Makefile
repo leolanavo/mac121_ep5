@@ -22,8 +22,7 @@ BIN      := ep5
 TARF     := EP5
 TEX      := relatorio.tex
 FINALDIR := EP5
-CFLAGS   := -Wall -ansi -pedantic -O2 -g
-
+CFLAGS   := -Wall -ansi -pedantic -O2
 CC  := gcc
 RM  := rm -f
 MV  := mv
