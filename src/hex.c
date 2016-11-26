@@ -299,15 +299,16 @@ int winner(char** board, coord pos, char color, int end, coord *ignore, int *cou
     coord next;
     flag = 1;
     for (i = 0; i < 6; i++) {
+
         next.lin = pos.lin + coord_neigh[i].lin;
         next.col = pos.col + coord_neigh[i].col;
-        for (j = count - 1; j >= 0 && flag == 1; j--)
+        for (j = *(count) - 1; j >= 0 && flag == 1; j--)
             if (next.col == ignore[j].col && next.lin == ignore[j].lin)
                 flag = 0;
         if (in_board(next) && flag)
             if (board[next.lin][next.col] == color) {
-                if (color == 'b' && next.lin == destiny) return 1;
-                if (color == 'p' && next.col == destiny) return 1;
+                if (color == 'b' && next.lin == end) return 1;
+                if (color == 'p' && next.col == end) return 1;
                 ignore[(*count)] =  next;
                 (*count)++;
                 if (winner(board, next, color, end, ignore, count))
@@ -318,16 +319,17 @@ int winner(char** board, coord pos, char color, int end, coord *ignore, int *cou
 }
 
 int main (int argc, char** argv) {
-    int **plays, whtwin, blkwin, i;
+    int **plays, whtwin, blkwin, i, count;
     char color, enemy, **board;
-    coord wht, blk, pos;
+    coord wht, blk, pos, *blacklist;
 
     board = create_board();
-    color = 0;
+    blacklist = malloc(196 * sizeof(coord));
+    color = count = 0;
     
     if (argc > 1) color = argv[1][0];
     if (color == 'b') enemy = 'p';
-    else enemy 'b';
+    else enemy = 'b';
 
     if (argc > 2 && argv[2][0] == 'd')
         print_board(board);
@@ -335,20 +337,21 @@ int main (int argc, char** argv) {
     print_matrix(plays);
     
     while (1) {
-        scanf("%d %d", pos.lin, pos.col);
-        if (pos.lin > 0 && pos.lin < 14 && pos.col > 0 && pos.col < 14)
+        scanf("%d %d", &pos.lin, &pos.col);
+        if (pos.lin > 0 && pos.lin < 14 && pos.col > 0 && pos.col < 14) {
             board[pos.lin][pos.col] = enemy;
             flood(board, color);
+        }
     }
     
     for (i = wht.lin = wht.col = blk.lin = blk.col = 0; i < SIZE; 
          i++, blk.lin++, wht.col++) {
-        whtwin = winner(board, wht, 'b', 13);
+        whtwin = winner(board, wht, 'b', 13, blacklist, &count);
         if (whtwin) {
             printf("b ganhou \n");
             return 0;
         }
-        blkwin = winner(board, blk, 'p', 13);
+        blkwin = winner(board, blk, 'p', 13, blacklist, &count);
         if (blkwin) {
             printf("p ganhou \n");
             return 0;
