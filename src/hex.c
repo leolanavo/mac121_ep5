@@ -47,6 +47,15 @@ const coord neigh_full[] = {
     {  2, -1 }
 };
 
+const bridge bdg_offset[] = {
+    { {-1, 1}, {-1, 0} },
+    { {-1, 0}, { 0,-1} },
+    { { 0, 1}, {-1, 1} },
+    { { 0,-1}, { 1,-1} },
+    { { 1, 0}, { 0, 1} },
+    { { 1,-1}, { 1, 0} },
+};
+
 
 /* Returns a char pointer pointer which will be
  * the 14x14 board for the hex game. */
@@ -81,126 +90,98 @@ int in_board (coord pos) {
 coord secure_bridges (char** board, char color, bridge* bridges, int n) {
     int i;
     coord failed;
+    
     failed.lin = -1;
     failed.col = -1;
 
     for (i = 0; i < n; i++) {
-        if (board[bridges[i].right.lin][bridges[i].right.col] == color)
+        if (board[bridges[i].right.lin][bridges[i].right.col] == color
+            && board[bridges[i].left.lin][bridges[i].left.col] == '-')
             return(bridges[i].left);
 
-        else if (board[bridges[i].left.lin][bridges[i].left.col] == color)
+        else if (board[bridges[i].left.lin][bridges[i].left.col] == color 
+            && board[bridges[i].right.lin][bridges[i].right.col] == '-')
             return(bridges[i].right);
     }
     return failed;
 }
 
 coord play (char** board, char color, bridge* bridges, int *n, coord last, int end) {
-    int i, dist, move;
-    coord pos, neighbor;
-    
+    int i, dist, move, index;
+    coord pos, aux;
+
     if (last.lin == -1 && last.col == -1) {
-        if(color == 'b') {
-            pos.lin = 0;
-            pos.col = 13;
-        }
-        else {
             pos.lin = 13;
             pos.col = 0;
-        }
-        
     }
-    else {
-        for (i = 0, dist = 0; i < 12; i++) {
-            
-            neighbor.lin = last.lin + neigh_full[i].lin;
-            neighbor.col = last.col + neigh_full[i].col;
 
-            if (in_board(neighbor)) {
-                if (color == 'b' && 13 - neighbor.lin >= 0 && 
-                    13 - neighbor.lin > dist 
-                    && board[neighbor.lin][neighbor.col] == '-') {
-                        dist = 13 - neighbor.lin;
-                        pos.lin = neighbor.lin;
-                        pos.col = neighbor.col;
+    else {
+        for (i = 0, dist = 14; i < 12; i++) {
+            
+            aux.lin = last.lin + neigh_full[i].lin;
+            aux.col = last.col + neigh_full[i].col;
+
+            if (in_board(aux)) {
+                if (color == 'b' && 13 - aux.lin >= 0 && 
+                    13 - aux.lin < dist 
+                    && board[aux.lin][aux.col] == '-') {
+                        dist = 13 - aux.lin;
+                        pos.lin = aux.lin;
+                        pos.col = aux.col;
+                        move = i;
                 }
-                else if (color == 'p' && 13 - neighbor.col >= 0 && 
-                         13 - neighbor.col > dist 
-                         && board[neighbor.lin][neighbor.col] == '-') {
-                    dist = 13 - neighbor.col;
-                    pos.lin = neighbor.lin;
-                    pos.col = neighbor.col;
+                else if (color == 'p' && 13 - aux.col >= 0 && 
+                         13 - aux.col < dist 
+                         && board[aux.lin][aux.col] == '-') {
+                    dist = 13 - aux.col;
+                    pos.lin = aux.lin;
+                    pos.col = aux.col;
+                    move = i;
                 }
             }
         }
     }
 
-    if (i > 5 && i < 12 && end == 0) {
-        if (i == 6)  {
-            bridges[*n].right.lin = pos.lin - 1;
-            bridges[*n].right.col = pos.col + 1;
-            bridges[*n].left.lin = pos.lin - 1;
-            bridges[*n].left.col = pos.col;
-        }
-        else if (i == 7)  {
-            bridges[*n].right.lin = pos.lin - 1;
-            bridges[*n].right.col = pos.col;
-            bridges[*n].left.lin = pos.lin;
-            bridges[*n].left.col = pos.col - 1;
-        }
-        else if (i == 8)  {
-            bridges[*n].right.lin = pos.lin ;
-            bridges[*n].right.col = pos.col + 1;
-            bridges[*n].left.lin = pos.lin - 1;
-            bridges[*n].left.col = pos.col + 1;
-        }
-        else if (i == 9)  {
-            bridges[*n].right.lin = pos.lin;
-            bridges[*n].right.col = pos.col - 1;
-            bridges[*n].left.lin = pos.lin + 1;
-            bridges[*n].left.col = pos.col - 1;
-        }
-        else if (i == 10)  {
-            bridges[*n].right.lin = pos.lin + 1;
-            bridges[*n].right.col = pos.col;
-            bridges[*n].left.lin = pos.lin;
-            bridges[*n].left.col = pos.col + 1;
-        }
-        else if (i == 11)  {
-            bridges[*n].right.lin = pos.lin + 1;
-            bridges[*n].right.col = pos.col - 1;
-            bridges[*n].left.lin = pos.lin + 1;
-            bridges[*n].left.col = pos.col;
-        }
+    if (move > 5 && move < 12 && end == 0) {
+        index = move - 6;
+        bridges[*n].right.lin = last.lin + bdg_offset[index].right.lin;
+        bridges[*n].right.col = last.col + bdg_offset[index].right.col;
+        bridges[*n].left.lin = last.lin + bdg_offset[index].left.lin;
+        bridges[*n].left.col = last.col + bdg_offset[index].left.col;
+        (*n)++;
     }
 
     else if (end) {
         move = 0;
-        while (move == 0 && *n < 196)
-            if (board[bridges[*n].right.lin][bridges[*n].right.col] == '-'
-                && board[bridges[*n].left.lin][bridges[*n].left.col] == '-') {
-                pos.lin = bridges[*n].right.lin;
-                pos.col = bridges[*n].right.col;
-                (*n)++;
+       
+        while (move == 0 && *n < 196) {
+            pos.lin = bridges[*n].right.lin;
+            pos.col = bridges[*n].right.col;
+            aux.lin = bridges[*n].left.lin;
+            aux.col = bridges[*n].left.col;
+            printf("%d\n", *n);
+            if (board[pos.lin][pos.col] == '-' 
+                || board[aux.lin][aux.col] == '-') {
                 move = 1;
-                printf("completando\n");
-           }
+            }
+            (*n)++;
+        }
     }
-    
     return pos;
 }
 
-int winner(char** board, coord pos, char color, int end, coord *ignore, int *count) {
+int winner(char** board, coord pos, char color, int end, coord *ignore, int count) {
     int i, j, flag;
     coord next;
     
-    flag = 1;
+    ignore[count] = pos;
     for (i = 0; i < 6; i++) {
         
         next.lin = pos.lin + neigh[i].lin;
         next.col = pos.col + neigh[i].col;
         
-        for (j = *(count) - 1; j >= 0 && flag == 1; j--)
-            if (next.col == ignore[j].col && next.lin == ignore[j].lin)
+        for (j = count - 1, flag = 1; j >= 0 && flag == 1; j--)
+            if (next.lin == ignore[j].lin && next.col == ignore[j].col)
                 flag = 0;
         
         if (in_board(next) && flag)
@@ -208,9 +189,7 @@ int winner(char** board, coord pos, char color, int end, coord *ignore, int *cou
                 if (color == 'b' && next.lin == end) return 1;
                 if (color == 'p' && next.col == end) return 1;
                 
-                ignore[(*count)] =  next;
-                (*count)++;
-                
+                count++;
                 if (winner(board, next, color, end, ignore, count))
                     return 1;
             }
@@ -222,26 +201,35 @@ int main (int argc, char** argv) {
     int whtwin, blkwin, i, count, pflag, end_flag;
     char color, enemy, **board;
     coord wht, blk, pos, *blacklist, last;
-    bridge* bridges;
+    bridge *bridges;
 
     board = create_board();
-    blacklist = malloc(196 * sizeof(coord));
     bridges = malloc(196 * sizeof(bridge));
     color = count = 0;
     
     if (argc > 1) color = argv[1][0];
-    
-    if (color == 'b') enemy = 'p';
-    else enemy = 'b';
 
     if (argc > 2 && argv[2][0] == 'd') pflag = 1;
     else pflag = 0;
     
+    if (color == 'b') {
+        enemy = 'p';
+        last.lin = 0; last.col = 13;
+        board[last.lin][last.col] = color;
+        printf("%d %d\n", last.lin, last.col);
+        if (pflag) print_board(board);
+    }
+    else {
+        enemy = 'b';
+        last.lin = last.col = -1;
+    }
+
     blkwin = whtwin = count = end_flag = 0;
     pos.lin = pos.col = -1;
-    last.lin = last.col = -1;
+    
 
     while (blkwin == 0 && whtwin == 0) {
+
         if (scanf("%d %d", &pos.lin, &pos.col));
         
         if (pos.lin >= 0 && pos.lin < 14 && pos.col >= 0 && pos.col < 14 
@@ -250,39 +238,52 @@ int main (int argc, char** argv) {
             
             if (pflag) print_board(board);
             
-	        pos = secure_bridges(board, enemy, bridges, count);
+            pos = secure_bridges(board, enemy, bridges, count);
             
-            if (pos.lin == -1 && pos.col == -1)
+            if (pos.lin == -1 && pos.col == -1) {
                 pos = play(board, color, bridges, &count, last, end_flag);
+                last.lin = pos.lin; last.col = pos.col;
+            }
             
             if((color == 'b' && pos.lin == 13) || (color == 'p' && pos.col == 13)) {
                 end_flag = 1;
                 count = 0;
             }
            
-            last.lin = pos.lin; last.col = pos.col;
+            
             board[pos.lin][pos.col] = color;
 
             if (pflag) print_board(board);
             
-            for (i = wht.lin = wht.col = blk.lin = blk.col = 0; i < SIZE; 
-	             i++, blk.lin++, wht.col++) {
-	            
-                whtwin = winner(board, wht, 'b', 13, blacklist, &count);
-	            if (whtwin) printf("b ganhou \n");
-	            
-                blkwin = winner(board, blk, 'p', 13, blacklist, &count);
-	            if (blkwin) printf("p ganhou \n");
-	        }
             printf("%d %d\n", pos.lin, pos.col);
+            for (i = wht.lin = wht.col = blk.lin = blk.col = 0; i < SIZE; 
+                 i++, blk.lin++, wht.col++) {
+                
+                blacklist = malloc(196 * sizeof(coord));
+                whtwin = winner(board, wht, 'b', 13, blacklist, 0);
+                if (whtwin) {
+                    printf("b ganhou \n");
+                    break;
+                }
+                free(blacklist);
+
+                blacklist = malloc(196 * sizeof(coord));
+                blkwin = winner(board, blk, 'p', 13, blacklist, 0);
+                if (blkwin) {
+                    printf("p ganhou \n");
+                    break;
+                }
+                free(blacklist);
+            }
+            
         }
     }
 
     for (i = 0; i < SIZE; i++) free(board[i]);
     
     free(board);
-    free(bridges);
     free(blacklist);
+    free(bridges);
     
     return 0;
 }
