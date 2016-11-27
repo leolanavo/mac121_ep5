@@ -14,91 +14,39 @@ typedef struct {
  * The value field is either its color or its
  * priority. */
 typedef struct {
-    coord pos;
-    char color;
+    coord posi;
     int value;
 } piece;
 
 typedef struct {
-    piece right;
-    piece left;
+    coord right;
+    coord left;
 } bridge;
 
-const coord coord_neigh[] = {
-    { -2,  1 }, 
-    { -1, -1 },
-    { -1,  0 },
+const coord neigh[] = {
+    { -1,  0 }, 
     { -1,  1 },
-    { -1,  2 },
-    {  0, -1 },
-};
-
-const coord coord_neigh_full[] = {
-    { -2,  1 }, 
-    { -1, -1 },
-    { -1,  0 },
-    { -1,  1 },
-    { -1,  2 },
     {  0, -1 },
     {  0,  1 },
-    {  1, -2 },
     {  1, -1 },
     {  1,  0 },
+};
+
+const coord neigh_full[] = {
+    { -1,  0 }, 
+    { -1,  1 },
+    {  0, -1 },
+    {  0,  1 },
+    {  1, -1 },
+    {  1,  0 },
+    { -2,  1 }, 
+    { -1, -1 },
+    { -1,  2 },
+    {  1, -2 },
     {  1,  1 },
     {  2, -1 }
 };
 
-const coord tower_down[] = {
-    {   2, -3  },
-    {   2, -2  },
-    {   2,  0  },
-    {   2,  1  },
-    {   1, -2  },
-    {   1, -1  },
-    {   1,  0  },
-    {   1,  1  },
-    {   0, -2  },
-    {   0, -1  }
-};
-
-const coord tower_left[] = {
-    {  -1, -2  },
-    {   0, -2  },
-    {   2, -2  },
-    {   3, -2  },
-    {  -1, -1  },
-    {   0, -1  },
-    {   1, -1  },
-    {   2, -1  },
-    {  -1,  0  },
-    {   1,  0  }
-};
-
-const coord tower_up[] = {
-    {  -2, -1  },
-    {  -2,  0  },
-    {  -2,  2  },
-    {  -2,  3  },
-    {  -1, -1  },
-    {  -1,  0  },
-    {  -1,  1  },
-    {  -1,  2  },
-    {   0, -1  },
-    {   0,  1  },
-};
-
-const coord tower_right[] = {
-    {  -3, 2  },
-    {  -2, 2  },
-    {   0, 2  },
-    {   1, 2  },
-    {  -2, 1  },
-    {  -1, 1  },
-    {   0, 1  },
-    {   1, 1  },
-    {  -1, 0  },
-    {   1, 0  },
-};
 
 /* Returns a char pointer pointer which will be
  * the 14x14 board for the hex game. */
@@ -118,18 +66,9 @@ char** create_board () {
 void print_board (char** board) {
     int i, j, count;
     for (i = 0; i < SIZE; i++) {
-        for (count = i; count > 0; count--) printf(" ");
-        for (j = 0; j < SIZE; j++) printf("%c ", board[i][j]);
-        printf("\n");
-    }
-}
-
-void print_matrix (int** matrix) {
-    int i, j, count;
-    for (i = 0; i < SIZE; i++) {
-        for (count = i; count > 0; count--) printf(" ");
-        for (j = 0; j < SIZE; j++) printf("%d ", matrix[i][j]);
-        printf("\n");
+        for (count = i; count > 0; count--) fprintf(stderr, " ");
+        for (j = 0; j < SIZE; j++) fprintf(stderr, "%c ", board[i][j]);
+        fprintf(stderr, "\n");
     }
 }
 
@@ -139,223 +78,211 @@ int in_board (coord pos) {
     return 1;
 }
 
-void flood_towers(char** board, char color, int** plays) {
-    int i, j, flag;
-    coord pos;
-    
-    if (color == 'b') {
-        for(i = 2, flag = 1; i < SIZE - 1 && flag == 1; i++, flag = 1)
-            if (board[11][i] == color) plays[11][i] = 1;
-            else {
-                for (j = 0; j < 10; j++) {
-                    pos.col = i + tower_down[j].col;
-                    pos.lin = 11 + tower_down[j].lin;
-                    if (plays[pos.lin][pos.col] < 0) flag = 0;
-                }
-                if (flag) plays[11][i] = 0;
-                else plays[11][i] = -1;
-            }
-        
-        for (i = 1; i < SIZE - 3; i++)
-            if (board[2][i] == color) plays[2][i] = 1;
-            else {
-                for (j = 0; j < 10; j++) {
-                    pos.col = i + tower_up[j].col;
-                    pos.lin = 2 + tower_up[j].lin;
-                    if (plays[pos.lin][pos.col] < 0) flag = 0;
-                }
-                if (flag) plays[2][i] = 0;
-                else plays[2][i] = -1;
-            }
-    }
-
-    else {
-        for(i = 2, flag = 1; i < SIZE - 1 && flag == 1; i++, flag = 1)
-            if (board[i][11] == color) plays[i][11] = 1;
-            else {
-                for (j = 0; j < 10; j++) {
-                    pos.col = i + tower_down[j].col;
-                    pos.lin = 11 + tower_down[j].lin;
-                    if (plays[pos.lin][pos.col] < 0) flag = 0;
-                }
-                if (flag) plays[i][11] = 0;
-                else plays[i][11] = -1;
-            }
-        
-        for (i = 1; i < SIZE - 3; i++)
-            if (board[i][2] == color) plays[i][2] = 1;
-            else {
-                for (j = 0; j < 10; j++) {
-                    pos.col = i + tower_up[j].col;
-                    pos.lin = 2 + tower_up[j].lin;
-                    if (plays[pos.lin][pos.col] < 0) flag = 0;
-                }
-                if (flag) plays[i][2] = 0;
-                else plays[i][2] = -1;
-            }
-    }
-}
-
-void markdown (char** board, coord pos, int** plays, char color) {
+coord secure_bridges (char** board, char color, bridge* bridges, int n) {
     int i;
-    coord aux;
-    for (i = 0; i < 10; i++) {
-        aux.lin = pos.lin + coord_neigh_full[i].lin;
-        aux.col = pos.col + coord_neigh_full[i].col;
-        if (in_board(aux)) {
-            if (board[aux.lin][aux.col] == color)
-                markdown(board, aux, plays, color);
-            else if (board[aux.lin][aux.col] == '-')
-                plays[aux.lin][aux.col] = 0;
-            else
-                plays[aux.lin][aux.col] = -1;
-            }
-        }
+    coord failed;
+    failed.lin = -1;
+    failed.col = -1;
+
+    for (i = 0; i < n; i++) {
+        if (board[bridges[i].right.lin][bridges[i].right.col] == color)
+            return(bridges[i].left);
+
+        else if (board[bridges[i].left.lin][bridges[i].left.col] == color)
+            return(bridges[i].right);
+    }
+    return failed;
 }
 
-int** flood (char** board, char color) {
-    int **plays, i, j;
-    coord pos;
-
-    plays = malloc(SIZE * sizeof(int*));
-    for (i = 0; i < SIZE; i++) {
-        plays[i] = malloc(SIZE * sizeof(int));
-            for (j = 0; j < SIZE; j++) plays[i][j] = 4;
-    }
-   
-    board[0][0] = 'p';
-    board[1][1] = 'p';
-    if(color == 'b') {
-        for (i = 0; i < SIZE; i++) {
-            if (board[0][i] == '-') plays[0][i] = 0;
-            else if (board[0][i] == color) plays[0][i] = 1;
-            else plays[0][i] = -1;
-        
-            if (board[13][i] == '-') plays[13][i] = 0;
-            else if (board[13][i] == color) plays[13][i] = 1;
-            else board[13][i] = -1;
-        }
-
-        for (i = 0; i < SIZE - 1; i++) {
-            if (board[1][i] == color) plays[1][i] = 1;
-            else if (plays[0][i] == -1 || plays[0][i + 1] == -1) 
-                plays[1][i] = -1;
-            else plays[1][i] = 0;
-        
-            if (board[12][i] == color) plays[12][i] = 1;
-            else if (plays[13][i] == -1 || plays[13][i + 1] == -1) 
-                plays[1][i] = -1;
-            else plays[12][i] = 0;
-        }
-    }
+coord play (char** board, char color, bridge* bridges, int *n, coord last, int end) {
+    int i, dist, move;
+    coord pos, neighbor;
     
-    else {
-        for (i = 0; i < SIZE; i++) {
-            if (board[i][0] == '-') plays[i][0] = 0;
-            else if (board[i][0] == color) plays[i][0] = 1;
-            else plays[i][0] = -1;
-        
-            if (board[i][13] == '-') plays[i][13] = 0;
-            else if (board[i][13] == color) plays[i][13] = 1;
-            else plays[i][13] = -1;
-        }
-        
-        for (i = 0; i < SIZE - 1; i++) {
-            if (board[i][1] == color) plays[i][1] = 1;
-            else if (plays[i][0] == -1 || plays[i + 1][0] == -1) 
-                plays[i][1] = -1;
-            else plays[i][1] = 0;
-        }
-        
-        for (i = 1; i < SIZE - 1; i++) {
-            if (board[i][12] == color) plays[i][12] = 1;
-            else if (plays[i][13] == -1 || plays[i + 1][13] == -1) 
-                plays[i][12] = -1;
-            else plays[i][12] = 0;
-        }
-    }
-    
-    flood_towers(board, color, plays);
-    if (color == 'b')
-        for (i = 0; i < SIZE; i++, pos.col = i) {
+    if (last.lin == -1 && last.col == -1) {
+        if(color == 'b') {
             pos.lin = 0;
-            markdown(board, pos, plays, color);
-            pos.lin = 13;
-            markdown(board, pos, plays, color);
-            
-        }
-    else  
-        for (i = 0; i < SIZE; i++, pos.lin = i) {
-            pos.col = 0;
-            markdown(board, pos, plays, color);
             pos.col = 13;
-            markdown(board, pos, plays, color);   
         }
-    return plays;
+        else {
+            pos.lin = 13;
+            pos.col = 0;
+        }
+        
+    }
+    else {
+        for (i = 0, dist = 0; i < 12; i++) {
+            
+            neighbor.lin = last.lin + neigh_full[i].lin;
+            neighbor.col = last.col + neigh_full[i].col;
+
+            if (in_board(neighbor)) {
+                if (color == 'b' && 13 - neighbor.lin >= 0 && 
+                    13 - neighbor.lin > dist 
+                    && board[neighbor.lin][neighbor.col] == '-') {
+                        dist = 13 - neighbor.lin;
+                        pos.lin = neighbor.lin;
+                        pos.col = neighbor.col;
+                }
+                else if (color == 'p' && 13 - neighbor.col >= 0 && 
+                         13 - neighbor.col > dist 
+                         && board[neighbor.lin][neighbor.col] == '-') {
+                    dist = 13 - neighbor.col;
+                    pos.lin = neighbor.lin;
+                    pos.col = neighbor.col;
+                }
+            }
+        }
+    }
+
+    if (i > 5 && i < 12 && end == 0) {
+        if (i == 6)  {
+            bridges[*n].right.lin = pos.lin - 1;
+            bridges[*n].right.col = pos.col + 1;
+            bridges[*n].left.lin = pos.lin - 1;
+            bridges[*n].left.col = pos.col;
+        }
+        else if (i == 7)  {
+            bridges[*n].right.lin = pos.lin - 1;
+            bridges[*n].right.col = pos.col;
+            bridges[*n].left.lin = pos.lin;
+            bridges[*n].left.col = pos.col - 1;
+        }
+        else if (i == 8)  {
+            bridges[*n].right.lin = pos.lin ;
+            bridges[*n].right.col = pos.col + 1;
+            bridges[*n].left.lin = pos.lin - 1;
+            bridges[*n].left.col = pos.col + 1;
+        }
+        else if (i == 9)  {
+            bridges[*n].right.lin = pos.lin;
+            bridges[*n].right.col = pos.col - 1;
+            bridges[*n].left.lin = pos.lin + 1;
+            bridges[*n].left.col = pos.col - 1;
+        }
+        else if (i == 10)  {
+            bridges[*n].right.lin = pos.lin + 1;
+            bridges[*n].right.col = pos.col;
+            bridges[*n].left.lin = pos.lin;
+            bridges[*n].left.col = pos.col + 1;
+        }
+        else if (i == 11)  {
+            bridges[*n].right.lin = pos.lin + 1;
+            bridges[*n].right.col = pos.col - 1;
+            bridges[*n].left.lin = pos.lin + 1;
+            bridges[*n].left.col = pos.col;
+        }
+    }
+
+    else if (end) {
+        move = 0;
+        while (move == 0 && *n < 196)
+            if (board[bridges[*n].right.lin][bridges[*n].right.col] == '-'
+                && board[bridges[*n].left.lin][bridges[*n].left.col] == '-') {
+                pos.lin = bridges[*n].right.lin;
+                pos.col = bridges[*n].right.col;
+                (*n)++;
+                move = 1;
+                printf("completando\n");
+           }
+    }
+    
+    return pos;
 }
 
 int winner(char** board, coord pos, char color, int end, coord *ignore, int *count) {
     int i, j, flag;
     coord next;
+    
     flag = 1;
     for (i = 0; i < 6; i++) {
-
-        next.lin = pos.lin + coord_neigh[i].lin;
-        next.col = pos.col + coord_neigh[i].col;
+        
+        next.lin = pos.lin + neigh[i].lin;
+        next.col = pos.col + neigh[i].col;
+        
         for (j = *(count) - 1; j >= 0 && flag == 1; j--)
             if (next.col == ignore[j].col && next.lin == ignore[j].lin)
                 flag = 0;
+        
         if (in_board(next) && flag)
             if (board[next.lin][next.col] == color) {
                 if (color == 'b' && next.lin == end) return 1;
                 if (color == 'p' && next.col == end) return 1;
+                
                 ignore[(*count)] =  next;
                 (*count)++;
+                
                 if (winner(board, next, color, end, ignore, count))
-                    return 1;;
+                    return 1;
             }
-        }
+    }
     return 0;
 }
 
 int main (int argc, char** argv) {
-    int **plays, whtwin, blkwin, i, count;
+    int whtwin, blkwin, i, count, pflag, end_flag;
     char color, enemy, **board;
-    coord wht, blk, pos, *blacklist;
+    coord wht, blk, pos, *blacklist, last;
+    bridge* bridges;
 
     board = create_board();
     blacklist = malloc(196 * sizeof(coord));
+    bridges = malloc(196 * sizeof(bridge));
     color = count = 0;
     
     if (argc > 1) color = argv[1][0];
+    
     if (color == 'b') enemy = 'p';
     else enemy = 'b';
 
-    if (argc > 2 && argv[2][0] == 'd')
-        print_board(board);
-    plays = flood(board, color);
-    print_matrix(plays);
+    if (argc > 2 && argv[2][0] == 'd') pflag = 1;
+    else pflag = 0;
     
-    while (1) {
-        scanf("%d %d", &pos.lin, &pos.col);
-        if (pos.lin > 0 && pos.lin < 14 && pos.col > 0 && pos.col < 14) {
+    blkwin = whtwin = count = end_flag = 0;
+    pos.lin = pos.col = -1;
+    last.lin = last.col = -1;
+
+    while (blkwin == 0 && whtwin == 0) {
+        if (scanf("%d %d", &pos.lin, &pos.col));
+        
+        if (pos.lin >= 0 && pos.lin < 14 && pos.col >= 0 && pos.col < 14 
+            && board[pos.lin][pos.col] == '-') {
             board[pos.lin][pos.col] = enemy;
-            flood(board, color);
+            
+            if (pflag) print_board(board);
+            
+	        pos = secure_bridges(board, enemy, bridges, count);
+            
+            if (pos.lin == -1 && pos.col == -1)
+                pos = play(board, color, bridges, &count, last, end_flag);
+            
+            if((color == 'b' && pos.lin == 13) || (color == 'p' && pos.col == 13)) {
+                end_flag = 1;
+                count = 0;
+            }
+           
+            last.lin = pos.lin; last.col = pos.col;
+            board[pos.lin][pos.col] = color;
+
+            if (pflag) print_board(board);
+            
+            for (i = wht.lin = wht.col = blk.lin = blk.col = 0; i < SIZE; 
+	             i++, blk.lin++, wht.col++) {
+	            
+                whtwin = winner(board, wht, 'b', 13, blacklist, &count);
+	            if (whtwin) printf("b ganhou \n");
+	            
+                blkwin = winner(board, blk, 'p', 13, blacklist, &count);
+	            if (blkwin) printf("p ganhou \n");
+	        }
+            printf("%d %d\n", pos.lin, pos.col);
         }
     }
+
+    for (i = 0; i < SIZE; i++) free(board[i]);
     
-    for (i = wht.lin = wht.col = blk.lin = blk.col = 0; i < SIZE; 
-         i++, blk.lin++, wht.col++) {
-        whtwin = winner(board, wht, 'b', 13, blacklist, &count);
-        if (whtwin) {
-            printf("b ganhou \n");
-            return 0;
-        }
-        blkwin = winner(board, blk, 'p', 13, blacklist, &count);
-        if (blkwin) {
-            printf("p ganhou \n");
-            return 0;
-        }
-    }
+    free(board);
+    free(bridges);
+    free(blacklist);
+    
     return 0;
 }
