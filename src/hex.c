@@ -4,25 +4,23 @@
 
 #define SIZE 14
 
+/* Sturct to store a matrix's position. */
 typedef struct {
     int lin;
     int col;
 } coord;
 
-/* A struct which will save the position
- * of a piece in the board, and its value. 
- * The value field is either its color or its
- * priority. */
-typedef struct {
-    coord posi;
-    int value;
-} piece;
-
+/* Struct to store the matrix's positions
+ * of the two tiles which connect to 
+ * pieces by a bridge. */
 typedef struct {
     coord right;
     coord left;
 } bridge;
 
+/* Vector of offsets that added to a position
+ * in the matrix, allows the program to find
+ * its immediate neighbors. */
 const coord neigh[] = {
     { -1,  0 }, 
     { -1,  1 },
@@ -32,6 +30,11 @@ const coord neigh[] = {
     {  1,  0 },
 };
 
+/* Vector of offsets that added to a position
+ * in the matrix, allows the program to find
+ * its immediate neighbors and positions which 
+ * are connected with the original position 
+ * by a bridge. */
 const coord neigh_full[] = {
     { -1,  0 }, 
     { -1,  1 },
@@ -47,6 +50,10 @@ const coord neigh_full[] = {
     {  2, -1 }
 };
 
+/* Vector of offsets that added to a position
+ * in the matrix, allows the program to find 
+ * the positions that makes the bridge to
+ * connect two positions. */
 const bridge bdg_offset[] = {
     { {-1, 1}, {-1, 0} },
     { {-1, 0}, { 0,-1} },
@@ -72,6 +79,8 @@ char** create_board () {
     return board;
 }
 
+/* Receives a matrix and will print it according
+ * to the specification. */
 void print_board (char** board) {
     int i, j, count;
     for (i = 0; i < SIZE; i++) {
@@ -81,12 +90,25 @@ void print_board (char** board) {
     }
 }
 
+/* Receives a position in the matrix. Returns
+ * 1 if the position is in the matrix,
+ * 0 otherwise. */
 int in_board (coord pos) {
     if (pos.lin < 0 || pos.lin >= SIZE) return 0;
     if (pos.col < 0 || pos.col >= SIZE) return 0;
     return 1;
 }
 
+/* Receives the board of the game, the color which the
+ * program is playing with, a vector with all the bridges 
+ * and the size of this vector.
+ * 
+ * Checks with the opponent tried to block a bridge and
+ * secure that bridge by placing a piece in the proper
+ * position. 
+ *
+ * Return a valid position with a bridge needs
+ * to be secured, (-1,-1), otherwise.*/
 coord secure_bridges (char** board, char color, bridge* bridges, int n) {
     int i;
     coord failed;
@@ -106,6 +128,19 @@ coord secure_bridges (char** board, char color, bridge* bridges, int n) {
     return failed;
 }
 
+/* Receives the board of the game, the color which the
+ * program is playing with, a vector with all the bridges
+ * the first empty space of this vector, the position of
+ * the last move and a flag which signals that it can 
+ * start just completing the bridges to finish the game.
+ * 
+ * Retruns the position where my piece should be put
+ * according to the bridge strategy defined in the report.
+ * 
+ * If the function did a bridge play, it inserts on the vector
+ * the two positions that connect the last piece and the current
+ * one that's going to be placed.
+ * */
 coord play (char** board, char color, bridge* bridges, int *n, coord last, int end) {
     int i, dist, move, index;
     coord pos, aux;
@@ -170,7 +205,14 @@ coord play (char** board, char color, bridge* bridges, int *n, coord last, int e
     return pos;
 }
 
-int winner(char** board, coord pos, char color, int end, coord *ignore, int count) {
+/* Receives the board of the game, a color of piece, the end
+ * line or column (depends the color, but the value is alway
+ * set to be 13), a vector of position that should be ignored
+ * when evaluting the path, and the size of this vector.
+ *
+ * Returns 1 if a player managed to win the game with the given
+ * color, 0 otherwise. */
+int winner(char** board, coord pos, char color, int end_pos, coord *ignore, int count) {
     int i, j, flag;
     coord next;
     
@@ -186,17 +228,20 @@ int winner(char** board, coord pos, char color, int end, coord *ignore, int coun
         
         if (in_board(next) && flag)
             if (board[next.lin][next.col] == color) {
-                if (color == 'b' && next.lin == end) return 1;
-                if (color == 'p' && next.col == end) return 1;
+                if (color == 'b' && next.lin == end_pos) return 1;
+                if (color == 'p' && next.col == end_pos) return 1;
                 
                 count++;
-                if (winner(board, next, color, end, ignore, count))
+                if (winner(board, next, color, end_pos, ignore, count))
                     return 1;
             }
     }
     return 0;
 }
 
+/* Receives the color which the program will play with, and
+ * if the second argument of the command line is 'd', it will
+ * print the board after every play made by both players. */
 int main (int argc, char** argv) {
     int whtwin, blkwin, i, count, pflag, end_flag;
     char color, enemy, **board;
@@ -238,22 +283,6 @@ int main (int argc, char** argv) {
             
             if (pflag) print_board(board);
             
-            pos = secure_bridges(board, enemy, bridges, count);
-            
-            if (pos.lin == -1 && pos.col == -1) {
-                pos = play(board, color, bridges, &count, last, end_flag);
-                last.lin = pos.lin; last.col = pos.col;
-            }
-            
-            if((color == 'b' && pos.lin == 13) || (color == 'p' && pos.col == 13)) {
-                end_flag = 1;
-                count = 0;
-            }
-           
-            
-            board[pos.lin][pos.col] = color;
-
-            if (pflag) print_board(board);
             
             printf("%d %d\n", pos.lin, pos.col);
             for (i = wht.lin = wht.col = blk.lin = blk.col = 0; i < SIZE; 
@@ -275,6 +304,23 @@ int main (int argc, char** argv) {
                 }
                 free(blacklist);
             }
+            
+            pos = secure_bridges(board, enemy, bridges, count);
+            
+            if (pos.lin == -1 && pos.col == -1) {
+                pos = play(board, color, bridges, &count, last, end_flag);
+                last.lin = pos.lin; last.col = pos.col;
+            }
+            
+            if((color == 'b' && pos.lin == 13) || (color == 'p' && pos.col == 13)) {
+                end_flag = 1;
+                count = 0;
+            }
+           
+            
+            board[pos.lin][pos.col] = color;
+
+            if (pflag) print_board(board);
             
         }
     }
