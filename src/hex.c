@@ -139,8 +139,7 @@ coord secure_bridges (char** board, char color, bridge* bridges, int n) {
  * 
  * If the function did a bridge play, it inserts on the vector
  * the two positions that connect the last piece and the current
- * one that's going to be placed.
- * */
+ * one that's going to be placed. */
 coord play (char** board, char color, bridge* bridges, int *n, coord last, int end) {
     int i, dist, move, index;
     coord pos, aux;
@@ -194,7 +193,6 @@ coord play (char** board, char color, bridge* bridges, int *n, coord last, int e
             pos.col = bridges[*n].right.col;
             aux.lin = bridges[*n].left.lin;
             aux.col = bridges[*n].left.col;
-            printf("%d\n", *n);
             if (board[pos.lin][pos.col] == '-' 
                 || board[aux.lin][aux.col] == '-') {
                 move = 1;
@@ -243,7 +241,7 @@ int winner(char** board, coord pos, char color, int end_pos, coord *ignore, int 
  * if the second argument of the command line is 'd', it will
  * print the board after every play made by both players. */
 int main (int argc, char** argv) {
-    int whtwin, blkwin, i, count, pflag, end_flag;
+    int whtwin, blkwin, i, count, pflag, end_flag, first;
     char color, enemy, **board;
     coord wht, blk, pos, *blacklist, last;
     bridge *bridges;
@@ -261,11 +259,13 @@ int main (int argc, char** argv) {
         enemy = 'p';
         last.lin = 0; last.col = 13;
         board[last.lin][last.col] = color;
+        first = 1;
         printf("%d %d\n", last.lin, last.col);
         if (pflag) print_board(board);
     }
     else {
         enemy = 'b';
+        first = 0;
         last.lin = last.col = -1;
     }
 
@@ -277,14 +277,27 @@ int main (int argc, char** argv) {
 
         if (scanf("%d %d", &pos.lin, &pos.col));
         
-        if (pos.lin >= 0 && pos.lin < 14 && pos.col >= 0 && pos.col < 14 
+        if (first == 0) {
+            first = -1;
+            if (pos.lin == 0 && pos.col == 13) {
+                color = 'b'; enemy = 'p';
+                board[pos.lin][pos.col] = color;
+                printf("%d %d\n", pos.lin, pos.col);
+                if (pflag) print_board(board);
+            }
+        }
+
+        else if (first == 1 && pos.lin == last.lin && pos.col == last.col) {
+            first = -1;
+            color = 'p'; enemy = 'b';
+            board[pos.lin][pos.col] = color;
+        }
+        
+        
+        else if (pos.lin >= 0 && pos.lin < 14 && pos.col >= 0 && pos.col < 14 
             && board[pos.lin][pos.col] == '-') {
             board[pos.lin][pos.col] = enemy;
             
-            if (pflag) print_board(board);
-            
-            
-            printf("%d %d\n", pos.lin, pos.col);
             for (i = wht.lin = wht.col = blk.lin = blk.col = 0; i < SIZE; 
                  i++, blk.lin++, wht.col++) {
                 
@@ -316,12 +329,10 @@ int main (int argc, char** argv) {
                 end_flag = 1;
                 count = 0;
             }
-           
             
             board[pos.lin][pos.col] = color;
-
             if (pflag) print_board(board);
-            
+            printf("%d %d\n", pos.lin, pos.col);
         }
     }
 
