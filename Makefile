@@ -22,11 +22,12 @@ BIN      := ep5
 TARF     := EP5
 TEX      := relatorio.tex
 FINALDIR := EP5
-CFLAGS   := -Wall -ansi -pedantic -O2
+CFLAGS   := -Wall -ansi -pedantic -g
+
 CC  := gcc
 RM  := rm -f
 MV  := mv
-CP  := cp
+CP  := cp -r
 TAR := tar -cvf 
 
 OBJDIR := obj
@@ -62,7 +63,7 @@ $(OBJDIR) $(BINDIR) $(SRCDIR) $(INCDIR) $(LTXDIR) $(TXTDIR) $(FINALDIR):
 # phony targets for automation
 .PHONY: init
 init: | $(SRCDIR) $(INCDIR) $(LTXDIR) $(TXTDIR)
-	#git init
+	git init
 	echo $(OBJDIR) > .gitignore
 	echo $(TXTDIR) >> .gitignore
 	echo $(FINALDIR) >> .gitignore
@@ -70,12 +71,12 @@ init: | $(SRCDIR) $(INCDIR) $(LTXDIR) $(TXTDIR)
 	echo $(LTXDIR)/*.log >> .gitignore
 	echo $(LTXDIR)/*.dvi >> .gitignore
 	echo $(LTXDIR)/*.aux >> .gitignore
-	#git add $(SRCDIR)
-	#git add $(INCDIR)
-	#git add $(LTXDIR)
-	#git add .gitignore
-	#git add Makefile
-	#git commit -m "Initial commit"
+	git add $(SRCDIR)
+	git add $(INCDIR)
+	git add $(LTXDIR)
+	git add .gitignore
+	git add Makefile
+	git commit -m "Initial commit"
 
 .PHONY: template
 template:
